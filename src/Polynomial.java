@@ -124,8 +124,63 @@ public class Polynomial extends ArrayList<Integer> {
        @return string representation of Polynomial
      */
 
+    private String getCoeff(int coeff) {
+	String c = "";
+	if (coeff == 1)
+	    return " + ";
+	if (coeff < 0) {
+	    if (coeff == -1)
+	        c += " - ";
+	    else
+		c += " - " + (coeff * -1);
+	}
+	else
+	    c += " + " + coeff;
+	return c;
+    }
+    
+    private String getX(int degree) {
+	if (degree == 0) {
+	    if (this.get(0) == 1)
+		return "1";
+	    else
+		return "";
+	}
+	String x = "x";
+	if (degree > 1)
+	    x += "^" + degree;
+	return x;
+    }
+
+    private String firstCoeff(int coeff) {
+	if (coeff == 1)
+	    return "";
+	if (coeff == -1)
+	    return "-";
+	String c = "";
+	if (coeff < 0)
+	    c += "-" + (coeff * -1);
+	else
+	    c += coeff;
+	return c;
+    }
+	    
+
     public String toString() {
-	String result = "stub"; // @@@ TODO: FIX ME!
+	if (this.size() == 1) {
+	    String result = "" + this.get(0);
+	    return result;
+	}
+	String result = "";
+	int i = this.size() - 1;
+	result += this.firstCoeff(this.get(i)) + this.getX(this.getDegree());
+	i--;
+	for (; i >= 0; i--) {
+	    if (this.get(i) == 0)
+		continue;
+	    else
+		result += this.getCoeff(this.get(i)) + this.getX(i);
+	}
 	return result;
     }
 
@@ -380,13 +435,14 @@ public class Polynomial extends ArrayList<Integer> {
 
 	Polynomial p = (Polynomial) o;
 
-	// @@@ TODO: Check the size of each ArrayList.  
-	// If they don't match, return false
+	if (p.size() != this.size())
+	    return false;
 
-	// @@@ TODO: If the sizes match, check whether the
-	// values match.  If not, return False.  Otherwise, return true.
+	for (int i = 0; i < this.size(); i++)
+	    if (this.get(i) != p.get(i))
+		return false;
 
-	return false; // @@@ STUB
+	return true;
 	
     }
 
@@ -407,7 +463,11 @@ public class Polynomial extends ArrayList<Integer> {
     */
 
     public static int degreeCoeffsLowToHigh(int [] coeffsLowToHigh) {
-	return -42; // @@@ STUB!
+	int degree = 0;
+	for (int i = 0; i < coeffsLowToHigh.length; i++)
+	    if (coeffsLowToHigh[i] != 0)
+		degree = i;
+	return degree;
     }
 
 
@@ -428,8 +488,11 @@ public class Polynomial extends ArrayList<Integer> {
     */
 
     public static int degreeCoeffsHighToLow(int [] coeffsHighToLow) {
-
-	return -42; // @@@ STUB!
+	int length = coeffsHighToLow.length;
+	for (int i = 0; i < length; i++)
+	    if (coeffsHighToLow[i] != 0)
+		return (length - 1 - i);
+	return 0; // @@@ STUB!
     }
 
 
@@ -444,7 +507,19 @@ public class Polynomial extends ArrayList<Integer> {
     */
 
     public static int [] lowToHigh(int [] coeffsHighToLow) {	
-	int [] stub = new int [] {-42, -42, -42};
+        int newLength = coeffsHighToLow.length;
+	int index = 0;
+	while (coeffsHighToLow[index] == 0) {
+	    newLength--;
+	    if (newLength == 0) {
+		int [] nothing = {0};
+		return nothing;
+	    }
+	    index++;
+	}
+	int [] stub = new int [newLength];
+	for (int i = 0; i < newLength; i++)
+	    stub[i] = coeffsHighToLow[coeffsHighToLow.length - 1 - i];
 	return stub;
     }
 
@@ -460,7 +535,19 @@ public class Polynomial extends ArrayList<Integer> {
     */
 
     public static int [] highToLow(int [] coeffsLowToHigh) {
-	int [] stub = new int [] {-42, -42, -42};
+	int newLength = coeffsLowToHigh.length;
+	int index = newLength - 1;
+	while (coeffsLowToHigh[index] == 0) {
+	    newLength--;
+	    if (newLength == 0) {
+		int [] nothing = {0};
+		return nothing;
+	    }
+	    index--;
+	}
+	int [] stub = new int [newLength];
+	for (int i = 0; i < newLength; i++)
+	    stub[newLength - 1 - i] = coeffsLowToHigh[i];
 	return stub;
     }
     
@@ -472,8 +559,28 @@ public class Polynomial extends ArrayList<Integer> {
 
     */
 
-    public Polynomial plus (Polynomial p) {	
-	Polynomial stub = new Polynomial (new int [] {-42});
+    public Polynomial plus (Polynomial p) {
+	int length;
+	int[] newPoly;
+	Polynomial bigger;
+	if (p.size() > this.size()) {
+	    newPoly = new int[p.size()];
+	    bigger = p;
+	    length = this.size();
+	}
+	else {
+	    newPoly = new int[this.size()];
+	    bigger = this;
+	    length = p.size();
+	}
+	
+	for (int i = 0; i < length; i++)
+	    newPoly[i] = p.get(i) + this.get(i);
+	for (int i = length; i < bigger.size(); i++)
+	    newPoly[i] = bigger.get(i);
+
+	newPoly = this.highToLow(newPoly);
+	Polynomial stub = new Polynomial (newPoly);
 	return stub;
     }
 
@@ -486,9 +593,16 @@ public class Polynomial extends ArrayList<Integer> {
     */
 
     public Polynomial times (Polynomial p) {
-	
-	Polynomial stub = new Polynomial (new int [] {-42});
-	return stub; // @@@ TODO: FIXME!
+
+	int[] newPoly = new int[p.size() + this.size()];
+
+	for (int i = 0; i < this.size(); i++)
+	    for (int j = 0; j < p.size(); j++)
+		newPoly[i + j] += this.get(i) * p.get(j);
+
+	newPoly = this.highToLow(newPoly);
+	Polynomial stub = new Polynomial (newPoly);
+	return stub;
 
     }
 
@@ -502,10 +616,9 @@ public class Polynomial extends ArrayList<Integer> {
 
 
     public Polynomial minus (Polynomial p) {
-
-	Polynomial stub = new Polynomial (new int [] {-42});
-	return stub; // @@@ TODO: FIXME!
-
+	int[] nega = {-1};
+	Polynomial negap = new Polynomial(nega);
+	return this.plus(p.times(negap));
     }
 
     /** Print Usage message for Polynomial main 
